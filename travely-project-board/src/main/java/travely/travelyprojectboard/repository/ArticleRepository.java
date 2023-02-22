@@ -11,10 +11,12 @@ import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import travely.travelyprojectboard.domain.Article;
 import travely.travelyprojectboard.domain.QArticle;
+import travely.travelyprojectboard.repository.querydsl.ArticleRepositoryCustom;
 
 @RepositoryRestResource
 public interface ArticleRepository extends
         JpaRepository<Article, Long>,
+        ArticleRepositoryCustom,
         QuerydslPredicateExecutor<Article>,
         QuerydslBinderCustomizer<QArticle> {
 
