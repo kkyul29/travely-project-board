@@ -1,6 +1,5 @@
 package travely.travelyprojectboard.controller;
 
-import io.micrometer.core.instrument.search.Search;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -8,11 +7,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import travely.travelyprojectboard.domain.type.SearchType;
+import org.springframework.web.bind.annotation.*;
+import travely.travelyprojectboard.domain.constant.FormStatus;
+import travely.travelyprojectboard.domain.constant.SearchType;
+import travely.travelyprojectboard.dto.UserAccountDto;
+import travely.travelyprojectboard.dto.request.ArticleRequest;
 import travely.travelyprojectboard.dto.response.ArticleResponse;
 import travely.travelyprojectboard.dto.response.ArticleWithCommentsResponse;
 import travely.travelyprojectboard.service.ArticleService;
@@ -47,7 +46,7 @@ public class ArticleController {
 
     @GetMapping("/{articleId}")
     public String article(@PathVariable Long articleId, ModelMap map){
-        ArticleWithCommentsResponse article = ArticleWithCommentsResponse.from(articleService.getArticle(articleId));
+        ArticleWithCommentsResponse article = ArticleWithCommentsResponse.from(articleService.getArticleWithComments(articleId));
 
         map.addAttribute("article", article);
         map.addAttribute("articleComments", article.articleCommentsResponse());
@@ -57,7 +56,7 @@ public class ArticleController {
     }
 
     @GetMapping("/search-hashtag")
-    public String searchHashtag(
+    public String searchArticleHashtag(
             @RequestParam(required = false) String searchValue,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
             ModelMap map
@@ -71,8 +70,53 @@ public class ArticleController {
         map.addAttribute("paginationBarNumbers", barNumbers);
         map.addAttribute("searchType", SearchType.HASHTAG);
 
-        return "articles/search-hashtag";
-
+            return "articles/search-hashtag";
     }
+
+    @GetMapping("/form")
+    public String articleForm(ModelMap map) {
+        map.addAttribute("formStatus", FormStatus.CREATE);
+
+        return "articles/form";
+    }
+
+    @PostMapping("/form")
+    public String postNewArticle(ArticleRequest articleRequest){
+        // TODO: 인증 정보 넣어주기!
+        articleService.saveArticle(articleRequest.toDto(UserAccountDto.of(
+                "cassie", "asdf1234", "cassie@mail.com", "Cassie", "memo"
+        )));
+
+        return "redirect:/articles";
+    }
+
+    @GetMapping("/{articleId}/form")
+    public String updateArticleForm(@PathVariable Long articleId, ModelMap map){
+        ArticleResponse article = ArticleResponse.from(articleService.getArticle(articleId));
+
+        map.addAttribute("article", article);
+        map.addAttribute("formStatus", FormStatus.UPDATE);
+
+        return "articles/form";
+    }
+
+    @PostMapping("/{articleId}/form")
+    public String updateArticle(@PathVariable Long articleId, ArticleRequest articleRequest){
+        // TODO: 인증 정보 넣어주기!
+        articleService.updateArticle(articleId, articleRequest.toDto(UserAccountDto.of(
+                "cassie", "asdf1234", "cassie@mail.com", "Cassie", "memo"
+        )));
+
+        return "redirect:/articles/" + articleId;
+    }
+
+    @PostMapping("/{articleId}/delete")
+    public String deleteArticle(@PathVariable Long articleId) {
+        //TODO: 인증 정보 넣어주기!
+        articleService.deleteArticle(articleId);
+
+        return "redirect:/articles";
+    }
+
 
 }
