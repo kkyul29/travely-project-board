@@ -1,4 +1,4 @@
-package travely.travelyprojectboard.domain.type;
+package travely.travelyprojectboard.domain.constant;
 
 import lombok.Getter;
 
