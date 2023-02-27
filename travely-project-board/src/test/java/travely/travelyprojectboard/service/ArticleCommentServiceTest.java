@@ -13,6 +13,7 @@ import travely.travelyprojectboard.dto.ArticleCommentDto;
 import travely.travelyprojectboard.dto.UserAccountDto;
 import travely.travelyprojectboard.repository.ArticleCommentRepository;
 import travely.travelyprojectboard.repository.ArticleRepository;
+import travely.travelyprojectboard.repository.UserAccountRepository;
 
 import javax.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
@@ -29,6 +30,7 @@ class ArticleCommentServiceTest {
     @InjectMocks private ArticleCommentService sut;
     @Mock private ArticleRepository articleRepository;
     @Mock private ArticleCommentRepository articleCommentRepository;
+    @Mock private UserAccountRepository userAccountRepository;
 
     @DisplayName("게시글 ID로 조회하면, 해당하는 댓글 리스트를 반환한다.")
     @Test
@@ -54,6 +56,7 @@ class ArticleCommentServiceTest {
         // Given
         ArticleCommentDto dto = createArticleCommentDto("댓글");
         given(articleRepository.getReferenceById(dto.articleId())).willReturn(createArticle());
+        given(userAccountRepository.getReferenceById(dto.userAccountDto().userId())).willReturn(createUserAccount());
         given(articleCommentRepository.save(any(ArticleComment.class))).willReturn(null);
 
         // When
@@ -61,7 +64,44 @@ class ArticleCommentServiceTest {
 
         // Then
         then(articleRepository).should().getReferenceById(dto.articleId());
+        then(userAccountRepository).should().getReferenceById(dto.userAccountDto().userId());
         then(articleCommentRepository).should().save(any(ArticleComment.class));
+    }
+
+    @DisplayName("댓글 저장을 시도했는데 맞는 게시글이 없으면, 경고 로그를 찍고 아무 것도 하지 않는다.")
+    @Test
+    void givenNoneExistentArticle_whenSavingArticleComment_thenLogsSituationAndDoesNothing(){
+        // Given
+        ArticleCommentDto dto = createArticleCommentDto("댓글");
+        given(articleRepository.getReferenceById(dto.articleId())).willThrow(EntityNotFoundException.class);
+
+        // When
+        sut.saveArticleComment(dto);
+
+        // Then
+        then(articleRepository).should().getReferenceById(dto.articleId());
+        then(userAccountRepository).shouldHaveNoInteractions();
+        then(articleCommentRepository).shouldHaveNoInteractions();
+    }
+
+    @DisplayName("댓글 정보를 입력하면, 댓글을 수정한다.")
+    @Test
+    void givenArticleCommentInfo_whenUpdatingArticleComment_thenUpdatesArticleComment(){
+        // Given
+        String oldContent = "컨텐ㅌ트";
+        String updatedContent = "댓글";
+        ArticleComment articleComment = createArticleComment(oldContent);
+        ArticleCommentDto dto = createArticleCommentDto(updatedContent);
+        given(articleCommentRepository.getReferenceById(dto.id())).willReturn(articleComment);
+
+        // When
+        sut.updateArticleComment(dto);
+
+        // Then
+        assertThat(articleComment.getContent())
+                .isNotEqualTo(oldContent)
+                .isEqualTo(updatedContent);
+        then(articleCommentRepository).should().getReferenceById(dto.id());
     }
 
     @DisplayName("없는 댓글 정보를 수정하려고 하면, 경고 로그를 찍고 아무 것도 하지 않는다.")
