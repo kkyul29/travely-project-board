@@ -32,4 +32,4 @@ Spring Boot
 
 
 ## 데모 페이지
-(현재 구현 중)
+* https://travely-board.herokuapp.com/
