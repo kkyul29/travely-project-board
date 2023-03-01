@@ -73,7 +73,3 @@ jar {
         attributes('Main-Class': 'travely.travelyprojectboard.TravelyProjectBoardApplication')
     }
 }
-
-bootJar {
-    destinationDirectory = file("./target")
-}
