@@ -30,6 +30,12 @@ Spring Boot
 * Spring Boot DevTools
 * Spring Configuration Processor
 
+그 외,
+
+* Bootstrap 5.2.3
+* QueryDSL 5.0.0
+* Heroku
+
 
 ## 데모 페이지
 * https://travely-board.herokuapp.com/
